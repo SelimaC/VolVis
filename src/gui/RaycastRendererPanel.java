@@ -4,7 +4,6 @@
  */
 package gui;
 
-import javax.swing.JOptionPane;
 import volvis.RaycastRenderer;
 
 /**
@@ -133,23 +132,28 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mipButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mipButtonActionPerformed
-        JOptionPane.showMessageDialog(this, "Not implemented.");
+    	renderer.setFunction(RaycastRenderer.MIP);
+        renderer.changed();
     }//GEN-LAST:event_mipButtonActionPerformed
 
     private void slicerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_slicerButtonActionPerformed
-        
+    	 renderer.setFunction(RaycastRenderer.SLICER);
+         renderer.changed();
     }//GEN-LAST:event_slicerButtonActionPerformed
 
     private void compositingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compositingButtonActionPerformed
-        JOptionPane.showMessageDialog(this, "Not implemented.");
+    	renderer.setFunction(RaycastRenderer.COMPOSITING);
+        renderer.changed();
     }//GEN-LAST:event_compositingButtonActionPerformed
 
     private void tf2dButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf2dButtonActionPerformed
-        JOptionPane.showMessageDialog(this, "Not implemented.");
+    	renderer.setFunction(RaycastRenderer.FUNC2D);
+        renderer.changed();
     }//GEN-LAST:event_tf2dButtonActionPerformed
 
     private void shadingCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shadingCheckboxActionPerformed
-        JOptionPane.showMessageDialog(this, "Not implemented.");
+    	renderer.setShading(shadingCheckbox.isSelected());
+        renderer.changed();
     }//GEN-LAST:event_shadingCheckboxActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
