@@ -28,6 +28,9 @@ public class Volume {
             dimY = reader.getYDim();
             dimZ = reader.getZDim();
             data = reader.getData().clone();
+            
+            diagonalDepth =  (int) Math.ceil( Math.sqrt(Math.pow(dimX,2) + Math.pow(dimY,2)  + Math.pow(dimZ,2)) );
+            
             computeHistogram();
         } catch (IOException ex) {
             System.out.println("IO exception");
@@ -50,6 +53,18 @@ public class Volume {
     
     public short getVoxel(int i) {
         return data[i];
+    }
+    
+    public short getVoxelbycoordinate(int[] c)
+    {
+     int x = c[0];
+     int y = c[1];
+     int z = c[2];
+     if (c[0] < 0 || c[0] > dimX|| c[1] < 0 || c[1] >dimY
+                || c[2] < 0 || c[2] > dimZ) {
+            return 0;
+        }
+     return data[x + dimX*(y + dimY * z)];
     }
     
     public int getDimX() {
@@ -91,7 +106,11 @@ public class Volume {
         }
     }
     
-    private int dimX, dimY, dimZ;
+    public int getDiagonalDepth() {
+        return diagonalDepth;
+    }
+    
+    private int dimX, dimY, dimZ, diagonalDepth;
     private short[] data;
     private int[] histogram;
 }
