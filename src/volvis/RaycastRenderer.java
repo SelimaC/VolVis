@@ -109,80 +109,53 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         return volume.getVoxel(x, y, z);
     }
     
+    // This function linearly interpolates the value g0 and g1 given the factor (t) between [0,1] 
+    private float interpolate(float g0, float g1, float factor) {
+    	return g0 * (1-factor) + g1*factor; 
+    }
+    
     // This function computes the intensity value for the point with coordinates coord, using trilinear interpolation
-    public double getVoxelLinearInterpolated(double[] coord)
-    {
-        /* We assume that the distance between neighbouring voxels is equal to 1 in all directions. */
-        double x = coord[0];
-        int xhigh = (int) Math.ceil(x);
-        int xlow = (int)Math.floor(x);
-        
-        double y = coord[1];
-        int yhigh = (int)Math.ceil(y);
-        int ylow = (int)Math.floor(y);
-        
-        double z = coord[2];
-        int zhigh = (int)Math.ceil(z);
-        int zlow = (int)Math.floor(z);
-        
-        // Making sure that point coordinates are within the limits.
-        if (xlow < 0 || xlow >= volume.getDimX() || ylow < 0 || ylow >= volume.getDimY()
-                   || zlow < 0 || zlow >= volume.getDimZ()) {
-               return 0;
-        }
-        if (xhigh < 0 || xhigh >= volume.getDimX() || yhigh < 0 || yhigh >= volume.getDimY()
-                   || zhigh < 0 || zhigh >= volume.getDimZ()) {
-               return 0;
-        }
-
-        //Pepare the voxel cube coordinate, x0 to x3 are the bottom coordinate, others are upper coordinate.
-        int[] x0 = {xlow, ylow, zlow};
-        int[] x1 = {xhigh, ylow, zlow};
-        int[] x2 = {xhigh, yhigh, zlow};
-        int[] x3 = {xhigh, yhigh, zlow};
-     
-        int[] x4 = {xlow,ylow,zhigh};
-        int[] x5 = {xhigh,ylow,zhigh};
-        int[] x6 = {xlow,yhigh,zhigh};
-        int[] x7 = {xhigh, yhigh,zhigh};
-        
-        // Get value of each point
-        short sx0 = volume.getVoxelbycoordinate(x0);
-        short sx1 = volume.getVoxelbycoordinate(x1);
-        short sx2 = volume.getVoxelbycoordinate(x2);
-        short sx3 = volume.getVoxelbycoordinate(x3);
-        short sx4 = volume.getVoxelbycoordinate(x4);
-        short sx5 = volume.getVoxelbycoordinate(x5);
-        short sx6 = volume.getVoxelbycoordinate(x6);
-        short sx7 = volume.getVoxelbycoordinate(x7);
-        
-        // Calculate the terms alpha, beta, and gamma in the formula
-        
-        // alpha= length(x-x0)/length(x1-x0)
-        double[] vxxo = {x-xhigh, y-ylow, z-zlow};
-        double[] vx1x0 = {xhigh-xlow, ylow-ylow, zlow-zlow};
-        double alpha = VectorMath.length(vxxo)/VectorMath.length(vx1x0);
-        
-        //beta = (x-x1)/(x3-x1)
-        double[] vxx1 = {x-xhigh, y-ylow, z-zlow};
-        double[] vx3x1 = {xhigh -xhigh, yhigh - ylow, zlow-zlow};
-        double beta = VectorMath.length(vxx1)/VectorMath.length(vx3x1);
-        
-        //gamma = (x-x3/x7-x3)
-        double[] vxx3 = {x-xhigh, y-yhigh, z-zlow};
-        double[] vx7x3 = {xhigh - xhigh, yhigh - yhigh, zhigh - zlow};
-        double gamma = VectorMath.length(vxx3)/VectorMath.length(vx7x3);
-        
-        // Calculate the scalar value with the formula in the course slides
-        double St = (1-alpha)*(1-beta)*(1-gamma)*sx0 + alpha*(1-beta)*(1-gamma)*sx1
-          +(1-alpha)*beta*(1-gamma)*sx2+ alpha*beta*(1-gamma)*sx3
-          +(1-alpha)*(1-beta)*gamma*sx4+alpha*(1-beta)*gamma*sx5
-          +(1-alpha)*beta*gamma*sx6+ alpha*beta*gamma*sx7 ;
-        return St;
+    private short getVoxelLinearInterpolate(double[] coord) {
+	// Making sure that point coordinates are within the limits.
+	if (coord[0] < 0 || coord[0] > (volume.getDimX()-2) || coord[1] < 0 || coord[1] > (volume.getDimY()-2)
+	        || coord[2] < 0 || coord[2] > (volume.getDimZ()-2)) {
+	    return 0;
+	}
+	/* We assume that the distance between neighbouring voxels is 1 in all directions*/
+	    
+	//Identify the cell which contains the point with coordinates coord
+	int x0 = (int) Math.floor(coord[0]); 
+	int y0 = (int) Math.floor(coord[1]);
+	int z0 = (int) Math.floor(coord[2]);
+	    
+	/* Since we assume the distances between neighbouting voxels are 1 in all directions: 
+	   the factors (between 0 and 1) needed for interpolate function are (coord - x0)/(x1-x0) = coord - x0 because x1-x0=1. */
+	float xdif = (float) (coord[0]-x0);
+	float ydif = (float) (coord[1]-y0);
+	float zdif = (float) (coord[2]-z0);
+	    
+	// Performing trilinear interpolation
+	// interpolate along x (note: coding used for values is vyz, so v10 means y=y0+1, z=z0)
+	// bottom cube face
+	float v00=interpolate(volume.getVoxel(x0,y0,z0),volume.getVoxel(x0 + 1,y0,z0), xdif);
+	float v10=interpolate(volume.getVoxel(x0,y0 + 1,z0),volume.getVoxel(x0 + 1,y0 + 1,z0), xdif); 
+	    
+	// top cube face
+	float v01=interpolate(volume.getVoxel(x0,y0,z0 + 1),volume.getVoxel(x0 + 1,y0,z0 + 1), xdif);
+	float v11=interpolate(volume.getVoxel(x0,y0 + 1,z0 + 1),volume.getVoxel(x0 + 1,y0 + 1,z0 + 1), xdif); 
+	    
+	// interpolate along y (note: v0/v1 refers to whether z=z0 or z=z0+1)
+	float v0 =interpolate(v00,v10,ydif);
+	float v1 =interpolate(v01,v11,ydif);
+	    
+	// interpolate along z
+	float vInt = interpolate(v0,v1,zdif);
+	    
+	return (short) vInt; 
     }
 
     // Clear the image
-    void clearImage(){
+    private void clearImage(){
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 image.setRGB(i, j, 0);
@@ -190,7 +163,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
     }
 
-    void slicer(double[] viewMatrix) {
+    public void slicer(double[] viewMatrix) {
 
         // clear image
         this.clearImage();
@@ -248,7 +221,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
     }
 
-    void mip(double[] viewMatrix) {
+    public void mip(double[] viewMatrix) {
 
         // clear image
         this.clearImage();
@@ -277,11 +250,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         int[] kRange = new int[2];
         
+         // Ray computation for each pixel
         for (int j = 0; j < image.getHeight(); j+=step) {
             for (int i = 0; i < image.getWidth(); i+=step) {
 
                 // Initialize max intensity
                 int maxIntensity = 0;
+                // Compute the entry and exit point of the ray
                 kRange = optimalDepth(imageCenter, viewVec, uVec, vVec, i, j);
                 
                 for (int k = kRange[0]; k < kRange[1]; k++) {
@@ -291,8 +266,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter) + viewVec[2] * (k) + volumeCenter[2];
 
                     // Speed up rendering when moving volume
-                    int val = this.interactiveMode ? getVoxel(pixelCoord) : (short) getVoxelLinearInterpolated(pixelCoord);
-                  
+                    int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelLinearInterpolate(pixelCoord);
+                    
+                    // Store maximum value
                     if (val > maxIntensity) {
                         maxIntensity = val;
                     }
@@ -304,22 +280,16 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 voxelColor.b = voxelColor.r;
                 voxelColor.a = maxIntensity > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
 
-                long pixelColor = this.pixelColor(voxelColor);
+                // BufferedImage expects a pixel color packed as ARGB in an int
+                int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
+                int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
+                int c_green = voxelColor.g <= 1.0 ? (int) Math.floor(voxelColor.g * 255) : 255;
+                int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
+                int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
+        
                 image.setRGB(i, j, (int) pixelColor);
             }
         }
-    }
-    
-    private long pixelColor(TFColor v) {
-        int c_alpha = v.a <= 1.0 ? (int) Math.floor(v.a * 255) : 255;
-        int c_red = v.r <= 1.0 ? (int) Math.floor(v.r * 255) : 255;
-        int c_green = v.g <= 1.0 ? (int) Math.floor(v.g * 255) : 255;
-        int c_blue = v.b <= 1.0 ? (int) Math.floor(v.b * 255) : 255;
-        return this.binaryColor(new long[]{c_alpha, c_red, c_green, c_blue});
-    }
-    
-    private long binaryColor(long[] rgba) {
-        return (rgba[0] << 24) | (rgba[1] << 16) | (rgba[2] << 8) | rgba[3];
     }
     
     private int[] optimalDepth(int imageCenter, double[] viewVec, double[] uVec, double[] vVec, int i, int j) {
@@ -377,7 +347,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             }
         }
         return new int[]{kStart, kEnd};
-
     }
     
     private void drawBoundingBox(GL2 gl) {
@@ -506,6 +475,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
 
     }
+    
     private BufferedImage image;
     private double[] viewMatrix = new double[4 * 4];
 
