@@ -1,0 +1,24 @@
+# Netbeans
+# https://github.com/github/gitignore/blob/master/Global/NetBeans.gitignore
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+# Eclipse
+# https://github.com/github/gitignore/blob/master/Global/Eclipse.gitignore
+*.pydevproject
+.metadata
+.gradle
+bin/
+tmp/
+*.tmp
+#*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
