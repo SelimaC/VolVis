@@ -189,10 +189,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double max = volume.getMaximum();
         TFColor voxelColor = new TFColor();
 
-        step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
-        
-        for (int j = 0; j < image.getHeight(); j+=step) {
-            for (int i = 0; i < image.getWidth(); i+=step) {
+        for (int j = 0; j < image.getHeight(); j++) {
+            for (int i = 0; i < image.getWidth(); i++) {
                 pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                         + volumeCenter[0];
                 pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
@@ -252,15 +250,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int[] kRange = new int[2];
         
          // Ray computation for each pixel
-        for (int j = 0; j < image.getHeight(); j+=step) {
-            for (int i = 0; i < image.getWidth(); i+=step) {
+        for (int j = 0; j < image.getHeight(); j++) {
+            for (int i = 0; i < image.getWidth(); i++) {
 
                 // Initialize max intensity
                 int maxIntensity = 0;
                 // Compute the entry and exit point of the ray
                 kRange = optimalDepth(imageCenter, viewVec, uVec, vVec, i, j);
                 
-                for (int k = kRange[0]; k < kRange[1]; k++) {
+                for (int k = kRange[0]; k < kRange[1]; k+=step) {
                     // Get calculate new volumeCenter
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * (k) + volumeCenter[0];
                     pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter) + viewVec[1] * (k) + volumeCenter[1];
@@ -379,13 +377,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
 
-        for (int j = 0; j < image.getHeight(); j += step) {
-            for (int i = 0; i < image.getWidth(); i += step) {
+        for (int j = 0; j < image.getHeight(); j ++) {
+            for (int i = 0; i < image.getWidth(); i ++) {
                 sumIntensity[i][j] = 0;
                 kRange = optimalDepth(imageCenter, viewVec, uVec, vVec, i, j);
 
                 TFColor compositingColor = new TFColor(0, 0, 0, 0);
-                for (int k = kRange[1] - 1; k >= kRange[0]; k--) {
+                for (int k = kRange[1] - 1; k >= kRange[0]; k-=step) {
                     // Get calculate new volumeCenter
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * (k) + volumeCenter[0];
                     pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter) + viewVec[1] * (k) + volumeCenter[1];
