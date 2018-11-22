@@ -383,7 +383,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 kRange = optimalDepth(imageCenter, viewVec, uVec, vVec, i, j);
 
                 TFColor compositingColor = new TFColor(0, 0, 0, 0);
-                for (int k = kRange[1] - 1; k >= kRange[0]; k-=step) {
+                for (int k = kRange[0]; k < kRange[1]; k+=step) {
                     // Get calculate new volumeCenter
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * (k) + volumeCenter[0];
                     pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter) + viewVec[1] * (k) + volumeCenter[1];
