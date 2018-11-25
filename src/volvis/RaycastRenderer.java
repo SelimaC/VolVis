@@ -122,37 +122,42 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 	        || coord[2] < 0 || coord[2] > (volume.getDimZ()-2)) {
 	    return 0;
 	}
-	/* We assume that the distance between neighbouring voxels is 1 in all directions*/
+	/* We assume that the distance between neighbouring voxels is 1 in all directions. */
 	    
-	//Identify the cell which contains the point with coordinates coord
+	// Identify the cell which contains the point with coordinates coord.
 	int x0 = (int) Math.floor(coord[0]); 
 	int y0 = (int) Math.floor(coord[1]);
 	int z0 = (int) Math.floor(coord[2]);
 	    
-	/* Since we assume the distances between neighbouting voxels are 1 in all directions: 
-	   the factors (between 0 and 1) needed for interpolate function are (coord - x0)/(x1-x0) = coord - x0 because x1-x0=1. */
-	float xdif = (float) (coord[0]-x0);
-	float ydif = (float) (coord[1]-y0);
-	float zdif = (float) (coord[2]-z0);
+	/* On a periodic and cubic lattice, let xd, yd and zd be the differences between each of x, y, z and the smaller coordinate 
+        related, that is: */
+        float xd = (float) (coord[0]-x0);
+	float yd = (float) (coord[1]-y0);
+	float zd = (float) (coord[2]-z0);
+        /* where x0 indicates the lattice point below x, and x1 indicates the lattice point above  x and similarly for 
+        y0, y1, z0 and z1. 
+        Since we assume the distances between neighbouring voxels are 1 in all directions: 
+        the factors (between 0 and 1) needed for interpolate function are (coord-x0)/(x1-x0) = coord-x0 because x1-x0=1.*/
+	  
+	/* Performing trilinear interpolation */
+        
+        // First we interpolate along x (note: coding used for values is cyz, so c10 means y=y0+1, z=z0)
+        // Bottom cube face
+	float c00=interpolate(volume.getVoxel(x0,y0,z0), volume.getVoxel(x0 + 1,y0,z0), xd);
+	float c10=interpolate(volume.getVoxel(x0,y0 + 1,z0), volume.getVoxel(x0 + 1,y0 + 1,z0), xd);
+	// Top cube face
+	float c01=interpolate(volume.getVoxel(x0, y0, z0 + 1), volume.getVoxel(x0 + 1, y0, z0 + 1), xd);
+	float c11=interpolate(volume.getVoxel(x0, y0 + 1,z0 + 1), volume.getVoxel(x0 + 1, y0 + 1, z0 + 1), xd); 
 	    
-	// Performing trilinear interpolation
-	// interpolate along x (note: coding used for values is vyz, so v10 means y=y0+1, z=z0)
-	// bottom cube face
-	float v00=interpolate(volume.getVoxel(x0,y0,z0),volume.getVoxel(x0 + 1,y0,z0), xdif);
-	float v10=interpolate(volume.getVoxel(x0,y0 + 1,z0),volume.getVoxel(x0 + 1,y0 + 1,z0), xdif); 
+	// Interpolate along y (note: v0/v1 refers to whether z=z0 or z=z0+1)
+	float c0 =interpolate(c00, c10, yd);
+	float c1 =interpolate(c01, c11, yd);
 	    
-	// top cube face
-	float v01=interpolate(volume.getVoxel(x0,y0,z0 + 1),volume.getVoxel(x0 + 1,y0,z0 + 1), xdif);
-	float v11=interpolate(volume.getVoxel(x0,y0 + 1,z0 + 1),volume.getVoxel(x0 + 1,y0 + 1,z0 + 1), xdif); 
-	    
-	// interpolate along y (note: v0/v1 refers to whether z=z0 or z=z0+1)
-	float v0 =interpolate(v00,v10,ydif);
-	float v1 =interpolate(v01,v11,ydif);
-	    
-	// interpolate along z
-	float vInt = interpolate(v0,v1,zdif);
-	    
-	return (short) vInt; 
+	// Finally we interpolate these values along z (walking through a line).
+	float cInt = interpolate(c0, c1, zd);
+	
+        // This gives us a predicted value for the point.   
+	return (short) cInt; 
     }
 
     // Clear the image
