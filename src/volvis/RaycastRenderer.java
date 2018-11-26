@@ -110,9 +110,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         return volume.getVoxel(x, y, z);
     }
     
-    // This function linearly interpolates the value g0 and g1 given the factor (t) between [0,1] 
-    private float interpolate(float g0, float g1, float factor) {
-    	return g0 * (1-factor) + g1*factor; 
+    // This function linearly interpolates the value p0 and p1 given the factor (t) between [0,1] 
+    private float interpolate(float p0, float p1, float factor) {
+    	return p0 * (1 - factor) + p1 * factor; 
     }
     
     // This function computes the intensity value for the point with coordinates coord, using trilinear interpolation
@@ -131,9 +131,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 	    
 	/* On a periodic and cubic lattice, let xd, yd and zd be the differences between each of x, y, z and the smaller coordinate 
         related, that is: */
-        float xd = (float) (coord[0]-x0);
-	float yd = (float) (coord[1]-y0);
-	float zd = (float) (coord[2]-z0);
+        float xd = (float) (coord[0] - x0);
+	float yd = (float) (coord[1] - y0);
+	float zd = (float) (coord[2] - z0);
         /* where x0 indicates the lattice point below x, and x1 indicates the lattice point above  x and similarly for 
         y0, y1, z0 and z1. 
         Since we assume the distances between neighbouring voxels are 1 in all directions: 
@@ -143,8 +143,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         // First we interpolate along x (note: coding used for values is cyz, so c10 means y=y0+1, z=z0)
         // Bottom cube face
-	float c00=interpolate(volume.getVoxel(x0,y0,z0), volume.getVoxel(x0 + 1,y0,z0), xd);
-	float c10=interpolate(volume.getVoxel(x0,y0 + 1,z0), volume.getVoxel(x0 + 1,y0 + 1,z0), xd);
+	float c00=interpolate(volume.getVoxel(x0, y0, z0), volume.getVoxel(x0 + 1, y0, z0), xd);
+	float c10=interpolate(volume.getVoxel(x0, y0 + 1, z0), volume.getVoxel(x0 + 1, y0 + 1, z0), xd);
 	// Top cube face
 	float c01=interpolate(volume.getVoxel(x0, y0, z0 + 1), volume.getVoxel(x0 + 1, y0, z0 + 1), xd);
 	float c11=interpolate(volume.getVoxel(x0, y0 + 1,z0 + 1), volume.getVoxel(x0 + 1, y0 + 1, z0 + 1), xd); 
@@ -154,10 +154,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 	float c1 =interpolate(c01, c11, yd);
 	    
 	// Finally we interpolate these values along z (walking through a line).
-	float cInt = interpolate(c0, c1, zd);
+	float c = interpolate(c0, c1, zd);
 	
         // This gives us a predicted value for the point.   
-	return (short) cInt; 
+	return (short) c; 
     }
 
     // Clear the image
@@ -212,7 +212,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 voxelColor.a = val > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
                 // Alternatively, apply the transfer function to obtain a color
                 //voxelColor = tFunc.getColor(val);
-                
                 
                 // BufferedImage expects a pixel color packed as ARGB in an int
                 int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
