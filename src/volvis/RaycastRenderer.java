@@ -299,46 +299,46 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
                 int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
         
-                image.setRGB(i, j, (int) pixelColor);
+                image.setRGB(i, j, pixelColor);
             }
         }
     }
     
     /* Compute the optimal entry and exit point of the ray */
     private int[] optimalRayRange(int i, int j, double[] viewVec, double[] uVec, double[] vVec, int imageCenter) {
-        // Initialize entry and exit point of teh ray
+        // Initialize entry and exit point of the ray
         int start = Integer.MIN_VALUE;
         int end = Integer.MAX_VALUE;
         
-        // Set volume dimensions: volume[x, y, z][low, high] = volume[0, 1, 2][0, 1]
-        int[][] volumeBoundary = new int[3][2];
-        volumeBoundary[0][0] = - volume.getDimX() / 2;
-        volumeBoundary[0][1] = volume.getDimX() / 2;
-        volumeBoundary[1][0] = - volume.getDimY() / 2;
-        volumeBoundary[1][1] = volume.getDimY() / 2;
-        volumeBoundary[2][0] = - volume.getDimZ() / 2;
-        volumeBoundary[2][1] = volume.getDimZ() / 2;
+        // Volume dimensions
+        int[][] volumeBoundaries = new int[3][2];
+        volumeBoundaries[0][0] = - volume.getDimX() / 2;
+        volumeBoundaries[0][1] = volume.getDimX() / 2;
+        volumeBoundaries[1][0] = - volume.getDimY() / 2;
+        volumeBoundaries[1][1] = volume.getDimY() / 2;
+        volumeBoundaries[2][0] = - volume.getDimZ() / 2;
+        volumeBoundaries[2][1] = volume.getDimZ() / 2;
 
-        // Origin [x, y, z]
+        // Origin 
         double[] origin = new double[3];
         // Range [entryPoint, exitPoint]
         int[] range = new int[2];
 
         for (int c = 0; c < 3; c++) {
 
-            // Set origin: origin[x, y, z] = origin[0, 1, 2]
+            // Set origin
             origin[c] = (i - imageCenter) * uVec[c] + (j - imageCenter) * vVec[c];
 
             // If the origin is not between the boundaries then return range = [0, 0]
             if (viewVec[c] == 0) {
-                if ((origin[c] < volumeBoundary[c][0] || origin[c] > volumeBoundary[c][1])) {
+                if ((origin[c] < volumeBoundaries[c][0] || origin[c] > volumeBoundaries[c][1])) {
                     return new int[]{0, 0};
                 }
             } else {
 
-                // Otherwise for each dimension find low/high . range[x,y,z][low, high] : range[0, 1, 2][0, 1]
-                range[0] = (int) ((volumeBoundary[c][0] - origin[c]) / viewVec[c]);
-                range[1] = (int) ((volumeBoundary[c][1] - origin[c]) / viewVec[c]);
+                // Otherwise for each dimension find low/high: range[x,y,z][low, high] : range[0, 1, 2][0, 1]
+                range[0] = (int) ((volumeBoundaries[c][0] - origin[c]) / viewVec[c]);
+                range[1] = (int) ((volumeBoundaries[c][1] - origin[c]) / viewVec[c]);
 
                 // If low > high, swap
                 if (range[0] > range[1]) {
@@ -371,8 +371,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // Clear the image
         clearImage();
 
-        // vector uVec and vVec define a plane through the origin, 
-        // perpendicular to the view vector viewVec
+        // Vector uVec and vVec define a plane through the origin, perpendicular to the view vector viewVec
         double[] viewVec = new double[3];
         double[] uVec = new double[3];
         double[] vVec = new double[3];
@@ -409,7 +408,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 entryPoint = range[0];
                 exitPoint = range[1];
         
-                TFColor compositingColor = new TFColor(0, 0, 0, 0);
+                TFColor color = new TFColor(0, 0, 0, 0);
+                
                 for (int k = entryPoint; k < exitPoint; k+=step) {
                     // Get calculate new volumeCenter
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * (k) + volumeCenter[0];
@@ -421,23 +421,22 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
                     voxelColor = tFunc.getColor(val);
 
+                    color.r = voxelColor.r * voxelColor.a + (1 - voxelColor.a) * color.r;
+                    color.g = voxelColor.g * voxelColor.a + (1 - voxelColor.a) * color.g;
+                    color.b = voxelColor.b * voxelColor.a + (1 - voxelColor.a) * color.b;
 
-                    compositingColor.r = voxelColor.r * voxelColor.a + (1 - voxelColor.a) * compositingColor.r;
-                    compositingColor.g = voxelColor.g * voxelColor.a + (1 - voxelColor.a) * compositingColor.g;
-                    compositingColor.b = voxelColor.b * voxelColor.a + (1 - voxelColor.a) * compositingColor.b;
-
-                    compositingColor.a = (1 - voxelColor.a) * compositingColor.a;
+                    color.a = (1 - voxelColor.a) * color.a;
 
                 }
-                compositingColor.a = 1 - compositingColor.a;
+                color.a = 1 - color.a;
                 // BufferedImage expects a pixel color packed as ARGB in an int
-                int c_alpha = compositingColor.a <= 1.0 ? (int) Math.floor(compositingColor.a * 255) : 255;
-                int c_red = compositingColor.r <= 1.0 ? (int) Math.floor(compositingColor.r * 255) : 255;
-                int c_green = compositingColor.g <= 1.0 ? (int) Math.floor(compositingColor.g * 255) : 255;
-                int c_blue = compositingColor.b <= 1.0 ? (int) Math.floor(compositingColor.b * 255) : 255;
+                int c_alpha = color.a <= 1.0 ? (int) Math.floor(color.a * 255) : 255;
+                int c_red = color.r <= 1.0 ? (int) Math.floor(color.r * 255) : 255;
+                int c_green = color.g <= 1.0 ? (int) Math.floor(color.g * 255) : 255;
+                int c_blue = color.b <= 1.0 ? (int) Math.floor(color.b * 255) : 255;
                 int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
 
-                image.setRGB(i, j, (int) pixelColor);
+                image.setRGB(i, j, pixelColor);
             }
         }
     }
