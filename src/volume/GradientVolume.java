@@ -11,6 +11,7 @@ package volume;
 public class GradientVolume {
 
     public GradientVolume(Volume vol) {
+        
         volume = vol;
         dimX = vol.getDimX();
         dimY = vol.getDimY();
@@ -21,39 +22,49 @@ public class GradientVolume {
     }
 
     public VoxelGradient getGradient(int x, int y, int z) {
+        
         if (x<0 || x >= dimX || y<0 || y >= dimY || z<0 || z >= dimZ){
+            
             return new VoxelGradient(0,0,0);
         } else {
+            
             return data[x + dimX * (y + dimY * z)];
         }
     }
 
     
     public void setGradient(int x, int y, int z, VoxelGradient value) {
+        
         data[x + dimX * (y + dimY * z)] = value;
     }
 
     public void setVoxel(int i, VoxelGradient value) {
+        
         data[i] = value;
     }
 
     public VoxelGradient getVoxel(int i) {
+        
         return data[i];
     }
 
     public int getDimX() {
+        
         return dimX;
     }
 
     public int getDimY() {
+        
         return dimY;
     }
 
     public int getDimZ() {
+        
         return dimZ;
     }
     
     public VoxelGradient getTriLinearGradient( float x, float y, float z ) {
+        
         int xLow = (int) Math.floor(x);
         int yLow = (int) Math.floor(y);
         int zLow = (int) Math.floor(z);
@@ -61,12 +72,12 @@ public class GradientVolume {
         int yHigh = (int) Math.ceil(y);
         int zHigh = (int) Math.ceil(z);
         
-        if (xLow < 0 || xLow >= dimX || yLow < 0 || yLow >= dimY
-                || zLow < 0 || zLow >= dimZ ) {
+        if (xLow < 0 || xLow >= dimX || yLow < 0 || yLow >= dimY || zLow < 0 || zLow >= dimZ ) {
+            
             return zero;
         }
-        if (xHigh < 0 || xHigh >= dimX || yHigh < 0 || yHigh >= dimY
-                || zHigh < 0 || zHigh >= dimZ ) {
+        if (xHigh < 0 || xHigh >= dimX || yHigh < 0 || yHigh >= dimY || zHigh < 0 || zHigh >= dimZ ) {
+            
             return zero;
         }
         
@@ -85,6 +96,7 @@ public class GradientVolume {
         
         float[] xyz = new float[3];
         for( int i = 0; i < 3; i ++ ){
+            
             xyz[i] = (1 - a) * (1 - b) * (1 - g) * x0[i]
                     + a * (1 - b) * (1 - g) * x1[i] 
                     + (1 - a) * b * (1 - g) * x2[i]
@@ -98,6 +110,7 @@ public class GradientVolume {
         return new VoxelGradient(xyz[0], xyz[1], xyz[2] );
     }
 
+    // Compute gradients
     private void compute() {
                 
         for (int i = 0; i < dimX; i++) {
@@ -119,19 +132,21 @@ public class GradientVolume {
                         gradient = new VoxelGradient(x, y, z);
                         setGradient(i, j, k, gradient);
                     }
-                    
                 }
             }
         }
-
     }
     
     public double getMaxGradientMagnitude() {
+        
         if (maxmag >= 0) {
+            
             return maxmag;
         } else {
+            
             double magnitude = data[0].mag;
             for (int i=0; i<data.length; i++) {
+                
                 magnitude = data[i].mag > magnitude ? data[i].mag : magnitude;
             }   
             maxmag = magnitude;

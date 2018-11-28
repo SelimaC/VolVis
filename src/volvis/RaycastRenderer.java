@@ -453,33 +453,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelLinearInterpolated(pixelCoord);
 
                     voxelColor = tFunc.getColor(val);
-                    
-                    if (this.shading) { // Shading option 
-
-                        VoxelGradient gradient = gradients.getTriLinearGradient((float) pixelCoord[0], (float) pixelCoord[1], (float) pixelCoord[2]);
-                        double[] reverseView = new double[3];
-                        VectorMath.setVector(reverseView, -viewMatrix[2], -viewMatrix[6], -viewMatrix[10]);
-                        
-                        double dotProduct = VectorMath.dotproduct(viewVec, gradient.normalisedVector());
-                        double[] rgb = new double[]{0, 0, 0};
-                        
-                        if (gradient.mag > 0 && dotProduct > 0) {
-                            
-                            double[] compRGB = new double[]{voxelColor.r, voxelColor.g, voxelColor.b};
-                            
-                            for (int z = 0; z < 3; z++) {
-                                
-                                rgb[z] = this.phongParams[0] + compRGB[z] * this.phongParams[1] * dotProduct + this.phongParams[2] * Math.pow(dotProduct, this.phongParams[3]);
-                            }
-                            
-                            voxelColor.r = rgb[0];
-                            voxelColor.g = rgb[1];
-                            voxelColor.b = rgb[2];
-                        } else {
-                            
-                            continue;
-                        }
-                    }
 
                     color.r = voxelColor.r * voxelColor.a + (1 - voxelColor.a) * color.r;
                     color.g = voxelColor.g * voxelColor.a + (1 - voxelColor.a) * color.g;
@@ -541,8 +514,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
         
         // 2D transfer function computation for each pixel
-        for (int j = 0; j < image.getHeight(); j += step) {
-            for (int i = 0; i < image.getWidth(); i += step) {
+        for (int j = 0; j < image.getHeight(); j ++) {
+            for (int i = 0; i < image.getWidth(); i ++) {
                 
                 // Initialize sumIntensity
                 sumIntensity[i][j] = 0;
