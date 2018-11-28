@@ -32,7 +32,6 @@ public class GradientVolume {
         }
     }
 
-    
     public void setGradient(int x, int y, int z, VoxelGradient value) {
         
         data[x + dimX * (y + dimY * z)] = value;
@@ -63,19 +62,21 @@ public class GradientVolume {
         return dimZ;
     }
     
-    public VoxelGradient getTriLinearGradient( float x, float y, float z ) {
+    public VoxelGradient getTriLinearGradient(float x, float y, float z) {
         
         int xLow = (int) Math.floor(x);
         int yLow = (int) Math.floor(y);
         int zLow = (int) Math.floor(z);
-        int xHigh = (int) Math.ceil(x);
-        int yHigh = (int) Math.ceil(y);
-        int zHigh = (int) Math.ceil(z);
-        
+
         if (xLow < 0 || xLow >= dimX || yLow < 0 || yLow >= dimY || zLow < 0 || zLow >= dimZ ) {
             
             return zero;
         }
+        
+        int xHigh = (int) Math.ceil(x);
+        int yHigh = (int) Math.ceil(y);
+        int zHigh = (int) Math.ceil(z);
+        
         if (xHigh < 0 || xHigh >= dimX || yHigh < 0 || yHigh >= dimY || zHigh < 0 || zHigh >= dimZ ) {
             
             return zero;
@@ -107,7 +108,7 @@ public class GradientVolume {
                     + a * b * g * x7[i];
         }
         
-        return new VoxelGradient(voxelGradient[0], voxelGradient[1], voxelGradient[2] );
+        return new VoxelGradient(voxelGradient[0], voxelGradient[1], voxelGradient[2]);
     }
 
     // Compute gradients

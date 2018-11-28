@@ -46,7 +46,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     int step = NON_INTERACTIVE_MODE_STEP;
     
     // Shading option
-    private boolean shading;
+    private boolean shading = false;
     
     // Phong parameters 
     private double kAmbient = 0.1;
@@ -525,8 +525,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 entryPoint = range[0];
                 exitPoint = range[1];
 
-                TFColor compositingColor = new TFColor(0, 0, 0, 0);
-                VoxelGradient gradient;
+                TFColor compositingColor = new TFColor(0, 0, 0, 0); 
                 
                 // Steps alon the ray for the current pixel
                 for (int k = exitPoint; k > entryPoint; k-=step) {
@@ -541,8 +540,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
                     voxelColor = tfEditor2D.triangleWidget.color.clone();
 
-                    gradient = gradients.getTriLinearGradient((float) pixelCoord[0], (float) pixelCoord[1], (float) pixelCoord[2]);
-                    double dotProduct = VectorMath.dotproduct(viewVec, gradient.normalisedVector());
+                    VoxelGradient gradient = gradients.getTriLinearGradient((float) pixelCoord[0], (float) pixelCoord[1], (float) pixelCoord[2]);
+                    double dotProduct = VectorMath.dotproduct(viewVec, gradient.getNormalisedVoxelGradient());
                     double opacity = computeOpacity(val, gradient);
                     
                     if (this.shading) { // Shading option
@@ -761,6 +760,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         this.shading = shading;
     }
     
+    /* Enable or disable shading option */
     public boolean getShading() {
         return this.shading;
     }
