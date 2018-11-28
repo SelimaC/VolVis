@@ -27,4 +27,14 @@ public class TFColor {
         String text = "(" + r + ", " + g + ", " + b + ", " + a + ")";
         return text;
     }
+    
+    
+     public TFColor clone(){
+        TFColor color = new TFColor();
+        color.a = this.a;
+        color.b = this.b;
+        color.r = this.r;
+        color.g = this.g;
+        return color;
+    }
 }
