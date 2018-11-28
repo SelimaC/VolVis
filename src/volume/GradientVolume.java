@@ -85,19 +85,19 @@ public class GradientVolume {
         float b = yHigh == yLow ? 0 : y - yLow / (yHigh - yLow);
         float g = zHigh == zLow ? 0 : z - zLow / (zHigh - zLow);
        
-        float[] x0 = this.getGradient(xLow, yLow, zLow).xyzArray();
-        float[] x1 = this.getGradient(xHigh, yLow, zLow).xyzArray();
-        float[] x2 = this.getGradient(xLow, yLow, zHigh).xyzArray();
-        float[] x3 = this.getGradient(xHigh, yLow, zHigh).xyzArray();
-        float[] x4 = this.getGradient(xLow, yHigh, zLow).xyzArray();
-        float[] x5 = this.getGradient(xHigh, yHigh, zLow).xyzArray();
-        float[] x6 = this.getGradient(xLow, yHigh, zHigh).xyzArray();
-        float[] x7 = this.getGradient(xHigh, yHigh, zHigh).xyzArray();
+        float[] x0 = this.getGradient(xLow, yLow, zLow).getVoxelGradient();
+        float[] x1 = this.getGradient(xHigh, yLow, zLow).getVoxelGradient();
+        float[] x2 = this.getGradient(xLow, yLow, zHigh).getVoxelGradient();
+        float[] x3 = this.getGradient(xHigh, yLow, zHigh).getVoxelGradient();
+        float[] x4 = this.getGradient(xLow, yHigh, zLow).getVoxelGradient();
+        float[] x5 = this.getGradient(xHigh, yHigh, zLow).getVoxelGradient();
+        float[] x6 = this.getGradient(xLow, yHigh, zHigh).getVoxelGradient();
+        float[] x7 = this.getGradient(xHigh, yHigh, zHigh).getVoxelGradient();
         
-        float[] xyz = new float[3];
+        float[] voxelGradient = new float[3];
         for( int i = 0; i < 3; i ++ ){
             
-            xyz[i] = (1 - a) * (1 - b) * (1 - g) * x0[i]
+            voxelGradient[i] = (1 - a) * (1 - b) * (1 - g) * x0[i]
                     + a * (1 - b) * (1 - g) * x1[i] 
                     + (1 - a) * b * (1 - g) * x2[i]
                     + a * b * (1 - g) * x3[i]
@@ -107,7 +107,7 @@ public class GradientVolume {
                     + a * b * g * x7[i];
         }
         
-        return new VoxelGradient(xyz[0], xyz[1], xyz[2] );
+        return new VoxelGradient(voxelGradient[0], voxelGradient[1], voxelGradient[2] );
     }
 
     // Compute gradients

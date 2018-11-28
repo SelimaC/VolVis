@@ -152,7 +152,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_tf2dButtonActionPerformed
 
     private void shadingCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shadingCheckboxActionPerformed
-        renderer.setShading(true);
+        renderer.setShading(!renderer.getShading());
         renderer.changed();
     }//GEN-LAST:event_shadingCheckboxActionPerformed
 

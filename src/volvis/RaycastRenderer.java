@@ -760,4 +760,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     public void setShading(boolean shading) {
         this.shading = shading;
     }
+    
+    public boolean getShading() {
+        return this.shading;
+    }
 }
