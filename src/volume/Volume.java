@@ -6,6 +6,7 @@ package volume;
 
 import java.io.File;
 import java.io.IOException;
+import static java.lang.Math.sqrt;
 
 /**
  *
@@ -29,7 +30,7 @@ public class Volume {
             dimZ = reader.getZDim();
             data = reader.getData().clone();
             
-            diagonalDepth =  (int) Math.ceil( Math.sqrt(Math.pow(dimX,2) + Math.pow(dimY,2)  + Math.pow(dimZ,2)) );
+            diagonalDepth =  (int) Math.ceil( Math.sqrt(Math.pow(dimX, 2) + Math.pow(dimY, 2)  + Math.pow(dimZ, 2)) );
             
             computeHistogram();
         } catch (IOException ex) {
