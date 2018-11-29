@@ -458,7 +458,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     TFColor color = tFunc.getColor(val);
                     
                     // Calculate the color of the voxel using the color of the previous voxels (back-to-front compositing order)
-
                     voxelColor.r = (1 - color.a) * voxelColor.r + color.a*color.r;
                     voxelColor.g = (1 - color.a) * voxelColor.g + color.a*color.g;
                     voxelColor.b = (1 - color.a) * voxelColor.b + color.a*color.b;
@@ -516,7 +515,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int exitPoint;
         double[] rgb;
 
-        // Step size of samples akong the viewing ray
+        // Step size of samples along the viewing ray
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
         
         // Resolution
@@ -533,7 +532,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
                 TFColor compositingColor = new TFColor(0, 0, 0, 0); 
                 
-                // Steps alon the ray for the current pixel
+                // Steps along the ray for the current pixel
                 for (int k = exitPoint; k > entryPoint; k-=step) {
 
                     // Get calculate new volumeCenter
@@ -545,6 +544,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelTrilinearInterpolated(pixelCoord);
 
                     if (val == 0) {
+                        
                         continue;
                     }
                     
@@ -554,7 +554,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     double dotProduct = VectorMath.dotproduct(viewVec, gradient.getNormalisedVoxelGradient());
                     double opacity = computeOpacity(val, gradient);
                     
-                    if (this.shading) { // Shading option
+                    if (this.shading) { // Shading option (Phong model)
                         
                         rgb = new double[]{0, 0, 0};
                         
