@@ -45,6 +45,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     int step = NON_INTERACTIVE_MODE_STEP;
     
+    // Resolution parameter
+    final static int INTERACTIVE_MODE_RESOLUTION = 2;
+    final static int NON_INTERACTIVE_MODE_RESOLUTION = 1;
+    
+    int resolution = NON_INTERACTIVE_MODE_RESOLUTION;
+    
     // Shading option
     private boolean shading = false;
     
@@ -424,12 +430,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int entryPoint;
         int exitPoint;
 
-         // Step size of samples akong the viewing ray
+        // Step size of samples akong the viewing ray
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
+        
+        // Resolution
+        resolution = this.interactiveMode ? INTERACTIVE_MODE_RESOLUTION : NON_INTERACTIVE_MODE_RESOLUTION;
 
         // Ray computation for each pixel
-        for (int j = 0; j < image.getHeight(); j ++) {
-            for (int i = 0; i < image.getWidth(); i ++) {
+        for (int j = 0; j < image.getHeight(); j += resolution) {
+            for (int i = 0; i < image.getWidth(); i += resolution) {
                 
                 // Initialize sumIntensity
                 sumIntensity[i][j] = 0;
@@ -471,6 +480,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
 
                 image.setRGB(i, j, pixelColor);
+                
+                if (this.interactiveMode) {
+                    
+                    image.setRGB(i, j + 1, pixelColor);
+                    image.setRGB(i + 1, j, pixelColor);
+                    image.setRGB(i + 1, j + 1, pixelColor);
+                }
             }
         }
     }
@@ -513,9 +529,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // Step size of samples akong the viewing ray
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
         
+        // Resolution
+        resolution = this.interactiveMode ? INTERACTIVE_MODE_RESOLUTION : NON_INTERACTIVE_MODE_RESOLUTION;
+        
         // 2D transfer function computation for each pixel
-        for (int j = 0; j < image.getHeight(); j ++) {
-            for (int i = 0; i < image.getWidth(); i ++) {
+        for (int j = 0; j < image.getHeight(); j += resolution) {
+            for (int i = 0; i < image.getWidth(); i += resolution) {
                 
                 // Initialize sumIntensity
                 sumIntensity[i][j] = 0;
@@ -583,6 +602,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
 
                 image.setRGB(i, j, pixelColor);
+                
+                if (this.interactiveMode) {
+                    
+                    image.setRGB(i, j + 1, pixelColor);
+                    image.setRGB(i + 1, j, pixelColor);
+                    image.setRGB(i + 1, j + 1, pixelColor);
+                }
             }
         }
     }
