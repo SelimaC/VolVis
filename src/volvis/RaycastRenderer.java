@@ -425,6 +425,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             radius = 2*radius;
         }
         
+        //The ray is pointing towards the scene
+        double[] rayVector = new double[3];
+        rayVector[0] =-viewVec[0];
+        rayVector[1] = -viewVec[1];
+        rayVector[2] = -viewVec[2];
+        
         // Step size of samples along the viewing ray
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
         
@@ -435,7 +441,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (int j = 0; j < image.getHeight(); j += resolution) {
             for (int i = 0; i < image.getWidth(); i += resolution) {
               
-                TFColor compositingColor = new TFColor(0, 0, 0, 0); 
+                TFColor compositingColor = new TFColor(0, 0, 0, 0);
                 
                 // Steps along the ray for the current pixel
                 for (int k = volume.getDiagonal(); k > 0; k-=step) {
@@ -448,11 +454,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     // Speed up rendering when moving volume
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelTrilinearInterpolated(pixelCoord);
 
-                    if (val == 0) {
-                        
-                        continue;
-                    }
-                    
                     voxelColor = tfEditor2D.triangleWidget.color.clone();
 
                     VoxelGradient gradient = gradients.getTriLinearGradient((float) pixelCoord[0], (float) pixelCoord[1], (float) pixelCoord[2]);
@@ -481,16 +482,35 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     
                     if (this.shading) { // Shading option (Phong model)
                         
-                        double dotProduct = VectorMath.dotproduct(viewVec, gradient.getNormalisedVoxelGradient());
+                        double length = VectorMath.length(viewVec);
+                        double[] V = new double[3];
+                        VectorMath.setVector(V, (-viewVec[0]/length), (-viewVec[1]/length), (-viewVec[2]/length));
+                        double[] L = V;
+                        double[] H = V;
+                        double[] N = new double[3];
+
+                        VectorMath.setVector(N, gradient.x / gradientMag, gradient.y / gradientMag, gradient.z / gradientMag);
+                        double dotNL;
+                        double dotNH;
+                        if (VectorMath.dotproduct(N, L) > 0) {
+                            dotNL = VectorMath.dotproduct(N, L);
+                        } else {
+                            dotNL = 0.01;
+                        }
+                        if (VectorMath.dotproduct(N, H) > 0) {
+                            dotNH = VectorMath.dotproduct(N, H);
+                        } else {
+                            dotNH = 0.01;
+                        }
                         rgb = new double[]{0, 0, 0};
                         
-                        if (gradientMag > 0 && dotProduct > 0 && opacity > 0) {
+                        if (gradientMag > 0 && opacity > 0) {
                             
                             double[] compRGB = new double[]{voxelColor.r, voxelColor.g, voxelColor.b};
                             
                             for (int z = 0; z < 3; z++) {
                                 
-                                rgb[z] = this.kAmbient + compRGB[z] * this.kDiffuse * dotProduct + this.kSpecular * Math.pow(dotProduct, this.kAlpha);
+                                rgb[z] = this.kAmbient + compRGB[z] * this.kDiffuse * dotNL + this.kSpecular * Math.pow(dotNH, this.kAlpha);
                             }
                             
                             voxelColor.r = rgb[0];

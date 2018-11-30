@@ -28,8 +28,8 @@ public class TFColor {
         return text;
     }
     
-    
-     public TFColor clone(){
+    @Override
+    public TFColor clone(){
         TFColor color = new TFColor();
         color.a = this.a;
         color.b = this.b;

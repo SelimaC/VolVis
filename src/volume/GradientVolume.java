@@ -4,6 +4,8 @@
  */
 package volume;
 
+import util.VectorMath;
+
 /**
  *
  * @author michel
@@ -113,7 +115,7 @@ public class GradientVolume {
 
     // Compute gradients
     private void compute() {
-                
+          
         for (int i = 0; i < dimX; i++) {
             for (int j = 0; j < dimY; j++) {
                 for (int k = 0; k < dimZ; k++) {

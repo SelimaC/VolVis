@@ -70,7 +70,7 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
         System.out.println("maxIntensity = " + maxIntensity);
         System.out.println("max gradient = " + maxGradientMagnitude);
 
-        xbins = maxIntensity + 1;
+        xbins = maxIntensity + 2;
         ybins = 300;
 
         histogram = new double[xbins * ybins];

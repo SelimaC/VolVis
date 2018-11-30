@@ -45,6 +45,4 @@ public class VectorMath {
     public static double length(double[] v) {
         return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
     }
-    
-
 }
