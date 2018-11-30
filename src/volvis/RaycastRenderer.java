@@ -55,17 +55,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     private boolean shading = false;
     
     // Phong parameters 
-    private double kAmbient = 0.1;
-    private double kDiffuse = 0.7;
-    private double kSpecular = 0.2;
-    private double kAlpha = 10;
-    
-    private double[] phongParams = new double[] {
-            this.kAmbient,
-            this.kDiffuse,
-            this.kSpecular,
-            this.kAlpha
-    };
+    private final double kAmbient = 0.1;
+    private final double kDiffuse = 0.7;
+    private final double kSpecular = 0.2;
+    private final double kAlpha = 10;
     
     public RaycastRenderer() {
         
@@ -277,11 +270,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // Step size of samples along the viewing ray
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
         
-        // Array to store the entry and exit point of the ray
-        int[] range = new int[2];
-        int entryPoint;
-        int exitPoint;
-        
         // Ray computation for each pixel
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
@@ -289,17 +277,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 // Initialize max intensity
                 int maxIntensity = 0;
                 
-                // Compute the optimal entry and exit point of the ray for the current pixel
-                range = computeRayRange(i, j, viewVec, uVec, vVec, imageCenter);
-                entryPoint = range[0];
-                exitPoint = range[1];
-                
                 // Steps along the ray to compute the maximum intensity projection for the current pixel
-                for (int k = entryPoint; k < exitPoint; k+=step) {
+                for (int k = 0; k < volume.getDiagonal(); k+=step) {
              
-                    pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * k + volumeCenter[0];
-                    pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter) + viewVec[1] * k + volumeCenter[1];
-                    pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter) + viewVec[2] * k + volumeCenter[2];
+                    pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * (k - imageCenter) + volumeCenter[0];
+                    pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter) + viewVec[1] * (k - imageCenter) + volumeCenter[1];
+                    pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter) + viewVec[2] * (k - imageCenter) + volumeCenter[2];
 
                     // Speed up rendering when moving volume
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelTrilinearInterpolated(pixelCoord);
@@ -329,74 +312,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
     }
     
-    /* Compute the optimal entry and exit point of the ray */
-    private int[] computeRayRange(int i, int j, double[] viewVec, double[] uVec, double[] vVec, int imageCenter) {
-        
-        // Initialize entry and exit point of the ray
-        int start = Integer.MIN_VALUE;
-        int end = Integer.MAX_VALUE;
-        
-        // Volume boundaries
-        int[][] volumeBoundaries = new int[3][2];
-        volumeBoundaries[0][0] = - volume.getDimX() / 2;
-        volumeBoundaries[0][1] = volume.getDimX() / 2;
-        volumeBoundaries[1][0] = - volume.getDimY() / 2;
-        volumeBoundaries[1][1] = volume.getDimY() / 2;
-        volumeBoundaries[2][0] = - volume.getDimZ() / 2;
-        volumeBoundaries[2][1] = volume.getDimZ() / 2;
-        
-        double[] origin = new double[3];
-        
-        // Range [entryPoint, exitPoint]
-        int[] range = new int[2];
-
-        for (int c = 0; c < 3; c++) {
-
-            // Set origin
-            origin[c] = (i - imageCenter) * uVec[c] + (j - imageCenter) * vVec[c];
-
-            // If the origin is not between the boundaries then return range = [0, 0]
-            if (viewVec[c] == 0) {
-                
-                if ((origin[c] < volumeBoundaries[c][0] || origin[c] > volumeBoundaries[c][1])) {
-                    
-                    return new int[]{0, 0};
-                }
-            } else {
-
-                // Otherwise for each dimension find low/high: range[x,y,z][low, high] : range[0, 1, 2][0, 1]
-                range[0] = (int) ((volumeBoundaries[c][0] - origin[c]) / viewVec[c]);
-                range[1] = (int) ((volumeBoundaries[c][1] - origin[c]) / viewVec[c]);
-
-                // If low > high, swap
-                if (range[0] > range[1]) {
-                    
-                    int tmp = range[0];
-                    range[0] = range[1];
-                    range[1] = tmp;
-                }
-                // If low > start , start = low
-                if (range[0] > start) {
-                    
-                    start = range[0];
-                }
-                // If high < end , end = high
-                if (range[1] < end) {
-                    
-                    end = range[1];
-                }
-                
-                if (start > end || end < 0) {
-                    
-                    return new int[]{0, 0};
-                }
-            }
-        }
-        
-        // Return entry and exit point of the ray
-        return new int[]{start, end};
-    }
-    
     /* Compositing ray function */
     void compositing(double[] viewMatrix) {
         
@@ -421,11 +336,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // Sample on a plane through the origin of the volume data
         TFColor voxelColor = new TFColor();
         
-        // Array to store the entry and exit point of the ray
-        int[] range = new int[2];
-        int entryPoint;
-        int exitPoint;
-
         // Step size of samples akong the viewing ray
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
         
@@ -435,21 +345,16 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // Ray computation for each pixel
         for (int j = 0; j < image.getHeight(); j += resolution) {
             for (int i = 0; i < image.getWidth(); i += resolution) {
-                
-                // Compute the optimal entry and exit point of the ray for the current pixel
-                range = computeRayRange(i, j, viewVec, uVec, vVec, imageCenter);
-                entryPoint = range[0];
-                exitPoint = range[1];
         
                 voxelColor = new TFColor(0, 0, 0, 0);
                 
                 /* Steps along the ray for the current pixel */
-                for (int k = entryPoint; k < exitPoint; k+=step) {
+                for (int k = 0; k < volume.getDiagonal(); k+=step) {
                     
                     // Get calculate new volumeCenter
-                    pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * k + volumeCenter[0];
-                    pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter) + viewVec[1] * k + volumeCenter[1];
-                    pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter) + viewVec[2] * k + volumeCenter[2];
+                    pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * (k - imageCenter) + volumeCenter[0];
+                    pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter) + viewVec[1] * (k - imageCenter) + volumeCenter[1];
+                    pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter) + viewVec[2] * (k - imageCenter) + volumeCenter[2];
 
                     // Speed up rendering when moving volume
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelTrilinearInterpolated(pixelCoord);
@@ -482,8 +387,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             }
         }
     }
-    
-    
+     
     /* 2D transfer function */
     void transferFunction2D(double[] viewMatrix) {
 
@@ -509,12 +413,18 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
 
         TFColor voxelColor = new TFColor(0, 0, 0, 0);
-
-        int[] range = new int[2];
-        int entryPoint;
-        int exitPoint;
         double[] rgb;
+        
+        double alphaV = tfEditor2D.triangleWidget.color.a;
+        short baseIntensity = tfEditor2D.triangleWidget.baseIntensity;
+        double radius = tfEditor2D.triangleWidget.radius;
 
+        // Thicken the borders in interactive mode
+        if(this.interactiveMode){
+            
+            radius = 2*radius;
+        }
+        
         // Step size of samples along the viewing ray
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
         
@@ -525,20 +435,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (int j = 0; j < image.getHeight(); j += resolution) {
             for (int i = 0; i < image.getWidth(); i += resolution) {
               
-                // Compute the optimal entry and exit point of the ray for the current pixel
-                range = computeRayRange(i,j, viewVec, uVec, vVec, imageCenter);
-                entryPoint = range[0];
-                exitPoint = range[1];
-
                 TFColor compositingColor = new TFColor(0, 0, 0, 0); 
                 
                 // Steps along the ray for the current pixel
-                for (int k = exitPoint; k > entryPoint; k-=step) {
+                for (int k = volume.getDiagonal(); k > 0; k-=step) {
 
                     // Get calculate new volumeCenter
-                    pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * (k) + volumeCenter[0];
-                    pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter) + viewVec[1] * (k) + volumeCenter[1];
-                    pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter) + viewVec[2] * (k) + volumeCenter[2];
+                    pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * (k - imageCenter) + volumeCenter[0];
+                    pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter) + viewVec[1] * (k - imageCenter) + volumeCenter[1];
+                    pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter) + viewVec[2] * (k - imageCenter) + volumeCenter[2];
 
                     // Speed up rendering when moving volume
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelTrilinearInterpolated(pixelCoord);
@@ -551,20 +456,41 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     voxelColor = tfEditor2D.triangleWidget.color.clone();
 
                     VoxelGradient gradient = gradients.getTriLinearGradient((float) pixelCoord[0], (float) pixelCoord[1], (float) pixelCoord[2]);
-                    double dotProduct = VectorMath.dotproduct(viewVec, gradient.getNormalisedVoxelGradient());
-                    double opacity = computeOpacity(val, gradient);
+                    double opacity = 0;
+                    double gradientMag = this.getGradientMag(pixelCoord, gradient);
+                    double minGradient = tfEditor2D.triangleWidget.minGradient;
+                    double maxGradient = tfEditor2D.triangleWidget.maxGradient;
+
+                    /* Compute the opacity for the 2D transfer function */
+                    if (gradientMag <= maxGradient && gradientMag >= minGradient) {
+                        
+                        if (gradientMag == 0 && val == baseIntensity) {
+
+                            opacity = alphaV;
+                        } else if (gradientMag > 0 && (val - radius * gradientMag <= baseIntensity) && (baseIntensity <= val + radius * gradientMag)) {
+
+                            opacity = alphaV * (1 - (1 / radius) * Math.abs((baseIntensity - val) / (gradientMag)));
+                        } else {
+                            
+                            opacity = 0;
+                        }
+                    } else {
+                        
+                        opacity = 0;
+                    }
                     
                     if (this.shading) { // Shading option (Phong model)
                         
+                        double dotProduct = VectorMath.dotproduct(viewVec, gradient.getNormalisedVoxelGradient());
                         rgb = new double[]{0, 0, 0};
                         
-                        if (gradient.mag > 0 && dotProduct > 0 && opacity > 0) {
+                        if (gradientMag > 0 && dotProduct > 0 && opacity > 0) {
                             
                             double[] compRGB = new double[]{voxelColor.r, voxelColor.g, voxelColor.b};
                             
                             for (int z = 0; z < 3; z++) {
                                 
-                                rgb[z] = phongParams[0] + compRGB[z] * phongParams[1] * dotProduct + phongParams[2] * Math.pow(dotProduct, phongParams[3]);
+                                rgb[z] = this.kAmbient + compRGB[z] * this.kDiffuse * dotProduct + this.kSpecular * Math.pow(dotProduct, this.kAlpha);
                             }
                             
                             voxelColor.r = rgb[0];
@@ -603,30 +529,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             }
         }
     }
-
-    /* Compute the opacity for the 2D transfer function */
-    private double computeOpacity(double intensity, VoxelGradient voxelGradient) {
+    
+    private double getGradientMag(double[] pixelCoord, VoxelGradient gradient) {
         
-        TFColor color = tfEditor2D.triangleWidget.color;
-        short baseIntensity = tfEditor2D.triangleWidget.baseIntensity;
-        double radius = tfEditor2D.triangleWidget.radius;
-
-        float gradientMagnitude = voxelGradient.mag;
-
-        if (voxelGradient.mag < tfEditor2D.triangleWidget.minGradient || voxelGradient.mag > tfEditor2D.triangleWidget.maxGradient) {
-            
+        if (pixelCoord[0] < 0 || pixelCoord[0] > volume.getDimX() - 1 || pixelCoord[1] < 0 || pixelCoord[1] > volume.getDimY() - 1 || pixelCoord[2] < 0 || pixelCoord[2] > volume.getDimZ() - 1) {
             return 0;
         }
-
-        if (gradientMagnitude == 0 && intensity == baseIntensity) {
-            
-            return color.a;
-        } else if (gradientMagnitude > 0 && (intensity - radius * gradientMagnitude <= baseIntensity) && (baseIntensity <= intensity + radius * gradientMagnitude)) {
-            
-            return color.a * (1 - (1 / radius) * Math.abs((baseIntensity - intensity) / (gradientMagnitude)));
-        }
         
-        return 0.0;
+        return gradient.getGradientMag();
     }
     
     /* Draw bounding box */

@@ -102,6 +102,10 @@ public class Volume {
         }
     }
     
+    public int getDiagonal() {
+        return (int) sqrt(dimX * dimX + dimY * dimY + dimZ * dimZ);
+    }
+    
     private int dimX, dimY, dimZ;
     private short[] data;
     private int[] histogram;

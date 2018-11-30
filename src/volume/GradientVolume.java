@@ -132,7 +132,7 @@ public class GradientVolume {
                         
                         gradient = new VoxelGradient(x, y, z);
                         setGradient(i, j, k, gradient);
-                    }
+                    }  
                 }
             }
         }

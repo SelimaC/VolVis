@@ -298,7 +298,7 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
 
         public TriangleWidget(short base, double maxGrad) {
             this.baseIntensity = base;
-            this.radius = 0.5;
+            this.radius = 1.5;
             this.color = new TFColor(0.0, 204.0/255.0, 153.0/255.0, 0.3);
             this.minGradient = 0;
             this.maxGradient = maxGrad;
