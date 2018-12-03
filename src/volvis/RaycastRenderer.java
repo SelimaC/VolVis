@@ -441,10 +441,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (int j = 0; j < image.getHeight(); j += resolution) {
             for (int i = 0; i < image.getWidth(); i += resolution) {
               
-                TFColor compositingColor = new TFColor(0, 0, 0, 0);
+                voxelColor = new TFColor(0, 0, 0, 0);
                 
                 // Steps along the ray for the current pixel
-                for (int k = volume.getDiagonal(); k > 0; k-=step) {
+                for (int k = 0; k < volume.getDiagonal(); k+=step) {
 
                     // Get calculate new volumeCenter
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter) + viewVec[0] * (k - imageCenter) + volumeCenter[0];
@@ -454,7 +454,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     // Speed up rendering when moving volume
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelTrilinearInterpolated(pixelCoord);
 
-                    voxelColor = tfEditor2D.triangleWidget.color.clone();
+                    TFColor color = tfEditor2D.triangleWidget.color.clone();
 
                     VoxelGradient gradient = gradients.getTriLinearGradient((float) pixelCoord[0], (float) pixelCoord[1], (float) pixelCoord[2]);
                     double opacity = 0;
@@ -484,58 +484,55 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                         
                         double length = VectorMath.length(viewVec);
                         double[] V = new double[3];
-                        VectorMath.setVector(V, (-viewVec[0]/length), (-viewVec[1]/length), (-viewVec[2]/length));
+                        VectorMath.setVector(V, (viewVec[0]), (viewVec[1]), (viewVec[2]));
                         double[] L = V;
-                        double[] H = V;
+                        double[] H = new double[3];
+                        VectorMath.setVector(H, V[0] / length, V[1]/length, V[2]/length);
                         double[] N = new double[3];
 
                         VectorMath.setVector(N, gradient.x / gradientMag, gradient.y / gradientMag, gradient.z / gradientMag);
-                        double dotNL;
-                        double dotNH;
-                        if (VectorMath.dotproduct(N, L) > 0) {
-                            dotNL = VectorMath.dotproduct(N, L);
-                        } else {
+                        double dotNL = VectorMath.dotproduct(N, L);
+                        double dotNH = VectorMath.dotproduct(N, H);
+                        if (dotNL < 0) {
+                            
                             dotNL = 0.01;
                         }
-                        if (VectorMath.dotproduct(N, H) > 0) {
-                            dotNH = VectorMath.dotproduct(N, H);
-                        } else {
+                        if (dotNH < 0) {
+                            
                             dotNH = 0.01;
                         }
                         rgb = new double[]{0, 0, 0};
                         
-                        if (gradientMag > 0 && opacity > 0) {
+                        if (gradientMag > 0) {
                             
-                            double[] compRGB = new double[]{voxelColor.r, voxelColor.g, voxelColor.b};
+                            double[] compRGB = new double[]{color.r, color.g, color.b};
                             
                             for (int z = 0; z < 3; z++) {
                                 
                                 rgb[z] = this.kAmbient + compRGB[z] * this.kDiffuse * dotNL + this.kSpecular * Math.pow(dotNH, this.kAlpha);
                             }
                             
-                            voxelColor.r = rgb[0];
-                            voxelColor.g = rgb[1];
-                            voxelColor.b = rgb[2];
+                            color.r = rgb[0];
+                            color.g = rgb[1];
+                            color.b = rgb[2];
                         } else {
                             
                             continue;
                         }
                     }
                    
-                    compositingColor.r = voxelColor.r * opacity + (1 - opacity) * compositingColor.r;
-                    compositingColor.g = voxelColor.g * opacity + (1 - opacity) * compositingColor.g;
-                    compositingColor.b = voxelColor.b * opacity + (1 - opacity) * compositingColor.b;
-
-                    compositingColor.a = (1 - opacity) * compositingColor.a;
+                    // Calculate the color of the voxel using the color of the previous voxels (back-to-front compositing order)
+                    voxelColor.r = (1 - opacity) * voxelColor.r + opacity * color.r;
+                    voxelColor.g = (1 - opacity) * voxelColor.g + opacity * color.g;
+                    voxelColor.b = (1 - opacity) * voxelColor.b + opacity * color.b;
+                    voxelColor.a = (1 - opacity) * voxelColor.a + opacity;
                 }
 
-                compositingColor.a = 1 - compositingColor.a;
-
                 // BufferedImage expects a pixel color packed as ARGB in an int
-                int c_alpha = compositingColor.a <= 1.0 ? (int) Math.floor(compositingColor.a * 255) : 255;
-                int c_red = compositingColor.r <= 1.0 ? (int) Math.floor(compositingColor.r * 255) : 255;
-                int c_green = compositingColor.g <= 1.0 ? (int) Math.floor(compositingColor.g * 255) : 255;
-                int c_blue = compositingColor.b <= 1.0 ? (int) Math.floor(compositingColor.b * 255) : 255;
+                int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
+                int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
+                int c_green = voxelColor.g <= 1.0 ? (int) Math.floor(voxelColor.g * 255) : 255;
+                int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
                 int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
 
                 image.setRGB(i, j, pixelColor);
