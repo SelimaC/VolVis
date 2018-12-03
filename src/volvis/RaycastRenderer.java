@@ -440,7 +440,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // 2D transfer function computation for each pixel
         for (int j = 0; j < image.getHeight(); j += resolution) {
             for (int i = 0; i < image.getWidth(); i += resolution) {
-              
+                
                 voxelColor = new TFColor(0, 0, 0, 0);
                 
                 // Steps along the ray for the current pixel
@@ -454,9 +454,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     // Speed up rendering when moving volume
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelTrilinearInterpolated(pixelCoord);
 
+                    // Thicken the borders in interactive mode
+                    if(this.interactiveMode){
+                        radius = 2*radius;
+                    }
+                    
                     TFColor color = tfEditor2D.triangleWidget.color.clone();
 
-                    VoxelGradient gradient = gradients.getTriLinearGradient((float) pixelCoord[0], (float) pixelCoord[1], (float) pixelCoord[2]);
+                    VoxelGradient gradient = this.interactiveMode ? gradients.getTriLinearGradient((float) pixelCoord[0], (float) pixelCoord[1], (float) pixelCoord[2]) : gradients.getGradient((int) pixelCoord[0], (int) pixelCoord[1], (int) pixelCoord[2]);
                     double opacity = 0;
                     double gradientMag = this.getGradientMag(pixelCoord, gradient);
                     double minGradient = tfEditor2D.triangleWidget.minGradient;
@@ -487,7 +492,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                         VectorMath.setVector(V, (viewVec[0]), (viewVec[1]), (viewVec[2]));
                         double[] L = V;
                         double[] H = new double[3];
-                        VectorMath.setVector(H, V[0] / length, V[1]/length, V[2]/length);
+                        VectorMath.setVector(H, V[0]/length, V[1]/length, V[2]/length);
                         double[] N = new double[3];
 
                         VectorMath.setVector(N, gradient.x / gradientMag, gradient.y / gradientMag, gradient.z / gradientMag);
