@@ -453,11 +453,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
                     // Speed up rendering when moving volume
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelTrilinearInterpolated(pixelCoord);
-
-                    // Thicken the borders in interactive mode
-                    if(this.interactiveMode){
-                        radius = 2*radius;
-                    }
                     
                     TFColor color = tfEditor2D.triangleWidget.color.clone();
 
