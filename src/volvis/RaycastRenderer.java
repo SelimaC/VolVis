@@ -427,7 +427,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         //The ray is pointing towards the scene
         double[] rayVector = new double[3];
-        rayVector[0] =-viewVec[0];
+        rayVector[0] = -viewVec[0];
         rayVector[1] = -viewVec[1];
         rayVector[2] = -viewVec[2];
         
@@ -453,6 +453,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
                     // Speed up rendering when moving volume
                     int val = this.interactiveMode ? getVoxel(pixelCoord) : getVoxelTrilinearInterpolated(pixelCoord);
+                    
+                    if(val == 0){
+                        
+                        continue;
+                    }
                     
                     TFColor color = tfEditor2D.triangleWidget.color.clone();
 
@@ -493,17 +498,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                         VectorMath.setVector(N, gradient.x / gradientMag, gradient.y / gradientMag, gradient.z / gradientMag);
                         double dotNL = VectorMath.dotproduct(N, L);
                         double dotNH = VectorMath.dotproduct(N, H);
-                        if (dotNL < 0) {
-                            
-                            dotNL = 0.01;
-                        }
-                        if (dotNH < 0) {
-                            
-                            dotNH = 0.01;
-                        }
+                        
                         rgb = new double[]{0, 0, 0};
                         
-                        if (gradientMag > 0) {
+                        if (opacity >0 && gradientMag > 0 && dotNL > 0 && dotNH > 0) {
                             
                             double[] compRGB = new double[]{color.r, color.g, color.b};
                             
@@ -515,9 +513,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                             color.r = rgb[0];
                             color.g = rgb[1];
                             color.b = rgb[2];
-                        } else {
-                            
-                            continue;
                         }
                     }
                    
