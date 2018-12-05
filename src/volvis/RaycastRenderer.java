@@ -425,12 +425,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             radius = 2*radius;
         }
         
-        //The ray is pointing towards the scene
-        double[] rayVector = new double[3];
-        rayVector[0] = -viewVec[0];
-        rayVector[1] = -viewVec[1];
-        rayVector[2] = -viewVec[2];
-        
         // Step size of samples along the viewing ray
         step = this.interactiveMode ? INTERACTIVE_MODE_STEP : NON_INTERACTIVE_MODE_STEP;
         
