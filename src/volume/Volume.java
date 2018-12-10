@@ -6,6 +6,7 @@ package volume;
 
 import java.io.File;
 import java.io.IOException;
+import static java.lang.Math.sqrt;
 
 /**
  *
@@ -28,53 +29,63 @@ public class Volume {
             dimY = reader.getYDim();
             dimZ = reader.getZDim();
             data = reader.getData().clone();
+            
             computeHistogram();
         } catch (IOException ex) {
             System.out.println("IO exception");
         }
-        
     }
     
-    
     public short getVoxel(int x, int y, int z) {
-        return data[x + dimX*(y + dimY * z)];
+        
+        return data[x + dimX * (y + dimY * z)];
     }
     
     public void setVoxel(int x, int y, int z, short value) {
-        data[x + dimX*(y + dimY*z)] = value;
+        
+        data[x + dimX * (y + dimY * z)] = value;
     }
 
     public void setVoxel(int i, short value) {
+        
         data[i] = value;
     }
     
     public short getVoxel(int i) {
+        
         return data[i];
     }
     
     public int getDimX() {
+        
         return dimX;
     }
     
     public int getDimY() {
+        
         return dimY;
     }
     
     public int getDimZ() {
+        
         return dimZ;
     }
 
     public short getMinimum() {
+        
         short minimum = data[0];
         for (int i=0; i<data.length; i++) {
+            
             minimum = data[i] < minimum ? data[i] : minimum;
         }
         return minimum;
     }
 
     public short getMaximum() {
+        
         short maximum = data[0];
         for (int i=0; i<data.length; i++) {
+            
             maximum = data[i] > maximum ? data[i] : maximum;
         }
         return maximum;
@@ -89,6 +100,10 @@ public class Volume {
         for (int i=0; i<data.length; i++) {
             histogram[data[i]]++;
         }
+    }
+    
+    public int getDiagonal() {
+        return (int) sqrt(dimX * dimX + dimY * dimY + dimZ * dimZ);
     }
     
     private int dimX, dimY, dimZ;
